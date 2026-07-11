@@ -2,17 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <title>PB Score</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
-    :root {
-      --gold: #ffd700;
-      --bg:   #0d1b2a;
-    }
+    :root { --gold: #ffd700; --bg: #0d1b2a; }
 
     html, body {
       width: 100%; height: 100%;
@@ -28,52 +25,63 @@
     #setup {
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
+      align-items: stretch;
       height: 100%;
-      gap: 14px;
-      padding: 16px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 10px 10px 16px;
+      gap: 6px;
       background: var(--bg);
     }
+
     .setup-title {
-      font-size: 15px; font-weight: 900;
+      font-size: 13px; font-weight: 900;
       letter-spacing: 1px; text-transform: uppercase;
       color: var(--gold);
+      text-align: center;
+      padding: 4px 0 2px;
     }
+
     .setup-label {
-      font-size: 10px; font-weight: 700;
+      font-size: 9px; font-weight: 700;
       text-transform: uppercase;
       color: rgba(255,255,255,0.45);
       letter-spacing: 0.6px;
-      align-self: flex-start;
-      margin-bottom: -8px;
+      margin-top: 2px;
     }
+
     .pill-row {
       display: flex;
       background: rgba(255,255,255,0.08);
-      border-radius: 10px;
-      padding: 3px;
-      gap: 3px;
+      border-radius: 8px;
+      padding: 2px;
+      gap: 2px;
       width: 100%;
     }
+
     .pill {
-      flex: 1; padding: 8px 4px;
+      flex: 1; padding: 7px 2px;
       background: transparent; border: none;
-      border-radius: 8px;
+      border-radius: 6px;
       color: rgba(255,255,255,0.4);
-      font-size: 13px; font-weight: 700;
+      font-size: 12px; font-weight: 700;
       cursor: pointer;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .pill.active { background: #fff; color: var(--bg); }
 
     .start-btn {
-      width: 100%; padding: 12px;
+      width: 100%; padding: 11px;
       background: #388E3C; color: #fff;
-      border: none; border-radius: 12px;
-      font-size: 15px; font-weight: 900;
+      border: none; border-radius: 10px;
+      font-size: 14px; font-weight: 900;
       text-transform: uppercase;
       letter-spacing: 1px; cursor: pointer;
-      margin-top: 4px;
+      margin-top: 6px;
+      flex-shrink: 0;
     }
     .start-btn:active { filter: brightness(1.15); }
 
@@ -107,8 +115,7 @@
     }
     .score {
       font-size: 64px; font-weight: 900;
-      line-height: 1;
-      letter-spacing: -2px;
+      line-height: 1; letter-spacing: -2px;
     }
     .serve-dot {
       display: none;
@@ -119,7 +126,6 @@
     }
     .panel.serving .serve-dot { display: block; }
 
-    /* Center divider */
     .divider {
       height: 1px;
       background: rgba(255,255,255,0.12);
@@ -132,9 +138,9 @@
       transform: translate(-50%, -50%);
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       background: var(--bg);
-      padding: 0 8px;
+      padding: 0 6px;
     }
     .call-score {
       font-size: 11px; font-weight: 800;
@@ -153,7 +159,6 @@
     }
     .undo-btn:active { background: rgba(255,255,255,0.2); }
 
-    /* Mode tag bottom */
     .mode-tag {
       text-align: center;
       font-size: 9px;
@@ -190,12 +195,6 @@
 <div id="setup">
   <div class="setup-title">Pickleball</div>
 
-  <div class="setup-label">Scoring Mode</div>
-  <div class="pill-row">
-    <button class="pill active" onclick="pick('mode','regular',this)">Regular</button>
-    <button class="pill"        onclick="pick('mode','rally',this)">Rally</button>
-  </div>
-
   <div class="setup-label">Match Type</div>
   <div class="pill-row">
     <button class="pill active" onclick="pick('type','doubles',this)">Doubles</button>
@@ -211,8 +210,8 @@
 
   <div class="setup-label">First Serve</div>
   <div class="pill-row">
-    <button class="pill active" onclick="pick('firstServe','A',this)">Team A</button>
-    <button class="pill"        onclick="pick('firstServe','B',this)">Team B</button>
+    <button class="pill active" onclick="pick('firstServe','A',this)">A</button>
+    <button class="pill"        onclick="pick('firstServe','B',this)">B</button>
   </div>
 
   <button class="start-btn" onclick="startGame()">Start</button>
@@ -220,15 +219,12 @@
 
 <!-- GAME -->
 <div id="game">
-
-  <!-- Panel A -->
   <div class="panel" id="panelA" onclick="addPoint('A')">
     <div class="team-name" id="dnA">Team A</div>
     <div class="score" id="sA">0</div>
     <div class="serve-dot"></div>
   </div>
 
-  <!-- Divider -->
   <div class="divider">
     <div class="center-bar">
       <span class="call-score" id="callScore">0 – 0</span>
@@ -236,7 +232,6 @@
     </div>
   </div>
 
-  <!-- Panel B -->
   <div class="panel" id="panelB" onclick="addPoint('B')">
     <div class="score" id="sB">0</div>
     <div class="team-name" id="dnB">Team B</div>
@@ -258,7 +253,7 @@
 </div>
 
 <script>
-const cfg = { mode: 'regular', type: 'doubles', winPoints: 11, firstServe: 'A' };
+const cfg = { mode: 'regular', type: 'doubles', winPoints: 11, firstServe: 'A' }; // mode fixed as regular
 
 function pick(key, val, btn) {
   cfg[key] = val;
@@ -267,7 +262,7 @@ function pick(key, val, btn) {
 }
 function pickPts(n, btn) {
   cfg.winPoints = n;
-  document.querySelectorAll('#setup .pill-row:nth-child(6) .pill').forEach(b =>
+  document.querySelectorAll('#setup .pill-row:nth-child(8) .pill').forEach(b =>
     b.classList.toggle('active', parseInt(b.textContent) === n)
   );
 }
@@ -291,8 +286,6 @@ function startGame() {
   document.getElementById('game').style.display  = 'flex';
   document.getElementById('sA').style.color = colors.A;
   document.getElementById('sB').style.color = colors.B;
-  document.getElementById('panelA').style.background = hexAlpha(colors.A, 0.08);
-  document.getElementById('panelB').style.background = hexAlpha(colors.B, 0.08);
   document.getElementById('modeTag').textContent =
     `${S.mode === 'regular' ? 'REGULAR' : 'RALLY'} · ${S.winPoints} PTS`;
   render();
