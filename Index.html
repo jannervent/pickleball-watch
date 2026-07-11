@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Pickleball Score">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>Pickleball Score</title>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box; margin: 0; padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    :root {
+      --bg:     #0d1b2a;
+      --gold:   #ffd700;
+      --text:   #ffffff;
+      --muted:  rgba(255,255,255,0.42);
+      --card:   rgba(255,255,255,0.06);
+      --border: rgba(255,255,255,0.12);
+      --cA: #1976D2;
+      --cB: #D32F2F;
+    }
+
+    html, body {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      background: #ffffff;
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow: hidden;
+      touch-action: manipulation;
+    }
+
+    /* Root wrapper — rotates in portrait mode */
+    #root {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+    }
+    @media (orientation: portrait) {
+      #root {
+        width: 100vh;
+        height: 100vw;
+        transform: rotate(90deg);
+        transform-origin: top left;
+        top: 0;
+        left: 100vw;
+      }
+    }
+
+    /* ════════════════════════════════
+       SETUP SCREEN — always landscape, two columns
+    ════════════════════════════════ */
+    #setup {
+      background: #ffffff;
+      color: #1a2332;
+      width: 100%; height: 100%;
+      display: flex;
+      flex-direction: column;
+      padding: 3vh 3vw 2vh;
+      gap: 2vh;
+      overflow: hidden;
+    }
+
+    /* Top bar: app name */
+    .setup-top {
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .app-title {
+      font-size: clamp(32px, 7vh, 56px);
+      font-weight: 800;
+      color: #1a2332;
+      letter-spacing: 1.5px;
+    }
+    .app-sub {
+      font-size: clamp(20px, 3.6vh, 28px);
+      color: rgba(0,0,0,0.38);
+      margin-top: 2px;
+    }
+
+    /* Two-column body */
+    .setup-body {
+      display: flex;
+      flex: 1;
+      gap: 3vw;
+      min-height: 0;
+      align-items: stretch;
+    }
+
+    .setup-divider {
+      width: 1px;
+      background: rgba(0,0,0,0.1);
+      flex-shrink: 0;
+      align-self: stretch;
+    }
+
+    /* Left column: colors + first serve */
+    .setup-left {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5vh;
+    }
+
+    /* Right column: scoring options */
+    .setup-right {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5vh;
+    }
+
+    /* Each section in a column takes equal space, aligned by box */
+    .setup-left > div,
+    .setup-right > div {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    /* Last item in each column — alinhados pela base, levantados do fundo */
+    .setup-left > div:last-child,
+    .setup-right > div:last-child {
+      justify-content: flex-end;
+      padding-bottom: 2.5vh;
+    }
+
+    .opt-label {
+      font-size: clamp(18px, 3.2vh, 26px);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      color: rgba(0,0,0,0.55);
+      margin-bottom: 0.6vh;
+    }
+
+    .pill-row {
+      display: flex;
+      background: rgba(0,0,0,0.07);
+      border-radius: clamp(8px, 1.5vh, 14px);
+      padding: 3px;
+      gap: 3px;
+    }
+    .pill {
+      flex: 1;
+      padding: clamp(8px, 1.8vh, 16px) 4px;
+      background: transparent;
+      border: none;
+      border-radius: clamp(6px, 1.2vh, 11px);
+      color: rgba(0,0,0,0.42);
+      font-size: clamp(26px, 4.4vh, 40px);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .pill.active { background: #1a2332; color: white; }
+
+    .pts-row { display: flex; gap: clamp(6px, 1.2vw, 12px); }
+    .pts-btn {
+      flex: 1;
+      padding: clamp(8px, 1.8vh, 16px) 4px;
+      background: transparent;
+      border: 1.5px solid rgba(0,0,0,0.15);
+      border-radius: clamp(8px, 1.5vh, 14px);
+      color: rgba(0,0,0,0.38);
+      font-size: clamp(28px, 5vh, 48px);
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .pts-btn.active {
+      border-color: #1a2332;
+      color: #1a2332;
+      background: rgba(26,35,50,0.07);
+    }
+
+    /* Team color pickers (right column) */
+    .team-picker {
+      display: flex;
+      align-items: center;
+      gap: 2vw;
+      background: rgba(0,0,0,0.04);
+      border: 1px solid rgba(0,0,0,0.09);
+      border-radius: clamp(8px, 1.5vh, 14px);
+      padding: clamp(8px, 1.8vh, 16px) clamp(10px, 2vw, 18px);
+    }
+    .team-picker-label {
+      font-size: clamp(28px, 5vh, 44px);
+      font-weight: 700;
+      flex-shrink: 0;
+      min-width: clamp(52px, 10vw, 80px);
+    }
+
+    .swatches {
+      display: flex;
+      flex: 1;
+      align-items: center;
+      justify-content: space-evenly;
+      gap: clamp(6px, 1.5vh, 14px);
+    }
+    .swatch {
+      width: clamp(36px, 7.5vh, 58px);
+      height: clamp(36px, 7.5vh, 58px);
+      border-radius: 50%;
+      border: 2.5px solid transparent;
+      cursor: pointer;
+      transition: transform 0.12s, border-color 0.12s;
+      flex-shrink: 0;
+    }
+    .swatch:active:not(.blocked) { transform: scale(0.9); }
+    .swatch.selected { border-color: #1a2332; transform: scale(1.18); }
+    .swatch.blocked  { opacity: 0.18; cursor: not-allowed; transform: none !important; }
+
+    /* Start button */
+    .start-btn {
+      flex-shrink: 0;
+      width: 100%;
+      padding: clamp(16px, 3.25vh, 26px);
+      background: #388E3C;
+      color: #ffffff;
+      font-size: clamp(28px, 5.6vh, 44px);
+      font-weight: 800;
+      border: none;
+      border-radius: clamp(10px, 2vh, 16px);
+      cursor: pointer;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    /* ════════════════════════════════
+       GAME SCREEN
+    ════════════════════════════════ */
+    #game {
+      display: none;
+      position: absolute;
+      inset: 0;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .panels {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+      gap: 8px;
+      padding: 8px;
+    }
+
+    .panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      cursor: default;
+      user-select: none;
+      position: relative;
+      transition: background 0.08s;
+      border-radius: 20px;
+      overflow: hidden;
+    }
+    .score-num, .team-label { cursor: pointer; }
+    .score-num:active, .team-label:active { opacity: 0.75; }
+
+    .serve-arrow {
+      display: none;
+      position: absolute;
+      bottom: 0px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0; height: 0;
+      border-left: 55px solid transparent;
+      border-right: 55px solid transparent;
+      border-bottom: 86px solid #000000;
+    }
+    .panel.serving .serve-arrow { display: block; }
+
+    .team-label {
+      display: flex; align-items: center; gap: 8px;
+      margin-top: -47px;
+    }
+    .team-name-display {
+      font-size: 75px; font-weight: 800;
+      letter-spacing: 0.3px;
+      opacity: 0.75;
+      text-transform: uppercase;
+    }
+    .serve-pill {
+      display: none;
+      background: var(--gold);
+      color: #0d1b2a;
+      font-size: 30px; font-weight: 800;
+      width: 56px; height: 56px;
+      padding: 0;
+      border-radius: 50%;
+      letter-spacing: 0.4px;
+      align-items: center;
+      justify-content: center;
+    }
+    .panel.serving .serve-pill {
+      display: inline-flex;
+    }
+
+    .score-num {
+      font-size: clamp(204px, 54vw, 390px);
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -3px;
+      margin-top: 10px;
+    }
+
+    .tap-hint {
+      font-size: 10px;
+      color: rgba(255,255,255,0.2);
+      letter-spacing: 0.4px;
+    }
+
+    /* Divider */
+    .divider {
+      width: 1px;
+      flex-shrink: 0;
+      background: rgba(255,255,255,0.1);
+      position: relative;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .call-box {
+      position: absolute;
+      background: #0d1b2a;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 20px;
+      padding: 11px 24px;
+      text-align: center;
+      white-space: nowrap;
+      z-index: 5;
+      transform: translateY(-126px);
+    }
+    .call-main {
+      font-size: 56px; font-weight: 800;
+      color: var(--gold); letter-spacing: 1px;
+    }
+    .call-sub {
+      display: none;
+    }
+
+    /* Corner buttons */
+    .corner-btn {
+      position: absolute;
+      top: 22px;
+      z-index: 20;
+      background: rgba(0,0,0,0.25);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.7);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 6px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      letter-spacing: 0.4px;
+    }
+    .corner-btn:active { background: rgba(255,255,255,0.15); color: white; }
+    .corner-btn.left  { left: 22px; }
+    .corner-btn.right { right: 22px; }
+
+    /* End game button */
+    .end-game-btn {
+      position: absolute;
+      top: calc(50% - 50px);
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+      background: rgba(180,30,30,0.85);
+      border: 1px solid rgba(255,100,100,0.3);
+      color: #ffffff;
+      font-size: 20px;
+      font-weight: 700;
+      padding: 8px 28px;
+      border-radius: 8px;
+      cursor: pointer;
+      letter-spacing: 0.4px;
+      white-space: nowrap;
+    }
+    .end-game-btn:active { background: rgba(220,50,50,0.95); }
+
+    /* Save confirmation modal */
+    #saveModal {
+      display: none;
+      position: absolute; inset: 0;
+      background: rgba(0,0,0,0.72);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+    #saveModal.show { display: flex; }
+    .save-modal-box {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 32px 40px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      min-width: 280px;
+    }
+    .save-modal-title {
+      font-size: 22px;
+      font-weight: 900;
+      color: #1a2332;
+    }
+    .save-modal-sub {
+      font-size: 15px;
+      color: rgba(0,0,0,0.5);
+      margin-top: -12px;
+    }
+    .save-modal-btns {
+      display: flex;
+      gap: 12px;
+    }
+    .save-modal-btn {
+      flex: 1;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .save-modal-btn.yes { background: #388E3C; color: #ffffff; }
+    .save-modal-btn.no  { background: rgba(0,0,0,0.08); color: #1a2332; }
+
+    /* Top info pill — flutuante, sem faixa */
+    .info-pill {
+      position: absolute;
+      top: 25px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      font-size: 64px;
+      font-weight: 900;
+      color: #000000;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
+    /* Controls bar */
+    .ctrl-bar {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 16px 8px;
+      background: rgba(0,0,0,0.4);
+      flex-shrink: 0;
+    }
+    .mode-tag {
+      font-size: 10px; color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 3px 10px;
+      letter-spacing: 0.4px;
+    }
+    .ctrl-btn {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 12px;
+      padding: 6px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .ctrl-btn:active { background: rgba(255,255,255,0.14); color: white; }
+    .ctrl-btn.red { color: #ff6b6b; border-color: rgba(255,107,107,0.25); }
+
+    /* ════════════════════════════════
+       WIN OVERLAY
+    ════════════════════════════════ */
+    #winOverlay {
+      display: none;
+      position: absolute; inset: 0;
+      background: rgba(0,0,0,0.88);
+      z-index: 100;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+    #winOverlay.show { display: flex; }
+
+    .win-emoji   { font-size: 46px; }
+    .win-label   { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 2px; }
+    .win-name    { font-size: 32px; font-weight: 900; color: var(--gold); }
+    .win-score   { font-size: 20px; color: var(--muted); }
+    .save-msg    { font-size: 12px; color: var(--muted); min-height: 18px; }
+    .win-btns    { display: flex; gap: 10px; margin-top: 6px; }
+    .win-btn     { padding: 12px 24px; border-radius: 10px; border: none; font-size: 14px; font-weight: 700; cursor: pointer; }
+    .win-btn.primary { background: var(--gold); color: #0d1b2a; }
+    .win-btn.ghost   { background: var(--card); color: white; border: 1px solid var(--border); }
+
+
+    /* iOS toast */
+    #iosToast {
+      display: none;
+      position: absolute;
+      bottom: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.88);
+      color: white;
+      font-size: 13px;
+      padding: 12px 20px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.15);
+      z-index: 300;
+      white-space: nowrap;
+      animation: fadeOut 3.5s forwards;
+    }
+    @keyframes fadeOut {
+      0%,60% { opacity: 1; }
+      100%    { opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+<div id="root">
+
+<!-- IOS TOAST -->
+<div id="iosToast">
+  <span>⬆ Tap <b>Share</b> → <b>Add to Home Screen</b> for fullscreen</span>
+</div>
+
+<!-- ══ SETUP SCREEN ══════════════════════════════ -->
+<div id="setup">
+
+  <!-- Dev credit -->
+  <div style="position:absolute; top:10px; right:14px; font-size:10px; color:rgba(0,0,0,0.25); font-weight:500; letter-spacing:0.3px; pointer-events:none;">Developed by Janner Ventura</div>
+
+  <!-- Top: app name -->
+  <div class="setup-top">
+    <div class="app-title">PICKLEBALL SCORE</div>
+    <div class="app-sub">Score counter</div>
+  </div>
+
+  <!-- Body: two columns -->
+  <div class="setup-body">
+
+    <!-- Left: colors + first serve -->
+    <div class="setup-left">
+      <div class="team-picker">
+        <span class="team-picker-label" id="labelA">Team A</span>
+        <div class="swatches" id="swatchesA"></div>
+      </div>
+      <div class="team-picker">
+        <span class="team-picker-label" id="labelB">Team B</span>
+        <div class="swatches" id="swatchesB"></div>
+      </div>
+      <div>
+        <div class="opt-label">First Serve</div>
+        <div class="pill-row">
+          <button class="pill active" id="fsA" onclick="pick('firstServe','A',this)">Team A</button>
+          <button class="pill" id="fsB" onclick="pick('firstServe','B',this)">Team B</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="setup-divider"></div>
+
+    <!-- Right: game settings -->
+    <div class="setup-right">
+      <div>
+        <div class="opt-label">Scoring Mode</div>
+        <div class="pill-row">
+          <button class="pill active" onclick="pick('mode','regular',this)">Regular</button>
+          <button class="pill" onclick="pick('mode','rally',this)">Rally</button>
+        </div>
+      </div>
+      <div>
+        <div class="opt-label">Match Type</div>
+        <div class="pill-row">
+          <button class="pill active" onclick="pick('type','doubles',this)">Double</button>
+          <button class="pill" onclick="pick('type','singles',this)">Single</button>
+        </div>
+      </div>
+      <div>
+        <div class="opt-label">Points to Win</div>
+        <div class="pts-row">
+          <button class="pts-btn active" onclick="pickPts(11,this)">11</button>
+          <button class="pts-btn" onclick="pickPts(15,this)">15</button>
+          <button class="pts-btn" onclick="pickPts(21,this)">21</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom: start button -->
+  <button class="start-btn" onclick="startGame()">START GAME</button>
+
+</div>
+
+<!-- ══ GAME SCREEN ═══════════════════════════════ -->
+<div id="game">
+  <button class="corner-btn left"  onclick="undoPoint()">Undo</button>
+  <button class="corner-btn right" onclick="resetGame()">Reset</button>
+  <button class="end-game-btn" onclick="endGame()">End</button>
+  <span class="info-pill" id="infoPill">REGULAR · 11 PTS</span>
+  <div class="panels">
+
+    <!-- Panel A -->
+    <div class="panel" id="panelA">
+      <div class="score-num" id="sA" onclick="addPoint('A')">0</div>
+      <div class="team-label" onclick="addPoint('A')">
+        <span class="team-name-display" id="dnA">Team A</span>
+        <span class="serve-pill" id="badgeA">SERVE</span>
+      </div>
+      <div class="tap-hint">tap to score</div>
+      <div class="serve-arrow"></div>
+    </div>
+
+    <!-- Center divider -->
+    <div class="divider">
+      <div class="call-box">
+        <div class="call-main" id="callMain">0-0</div>
+        <div class="call-sub"  id="callSub">SCORE</div>
+      </div>
+    </div>
+
+    <!-- Panel B -->
+    <div class="panel" id="panelB">
+      <div class="score-num" id="sB" onclick="addPoint('B')">0</div>
+      <div class="team-label" onclick="addPoint('B')">
+        <span class="team-name-display" id="dnB">Team B</span>
+        <span class="serve-pill" id="badgeB">SERVE</span>
+      </div>
+      <div class="tap-hint">tap to score</div>
+      <div class="serve-arrow"></div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ══ SAVE MODAL ════════════════════════════════ -->
+<div id="saveModal">
+  <div class="save-modal-box">
+    <div class="save-modal-title">Save match?</div>
+    <div class="save-modal-sub" id="saveModalSub">Team A vs Team B · 0 × 0</div>
+    <div class="save-modal-btns">
+      <button class="save-modal-btn yes" onclick="confirmSave()">Yes</button>
+      <button class="save-modal-btn no"  onclick="confirmDiscard()">No</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ WIN OVERLAY ═══════════════════════════════ -->
+<div id="winOverlay">
+  <div class="win-emoji">🏆</div>
+  <div class="win-label">Winner</div>
+  <div class="win-name" id="winName">—</div>
+  <div class="win-score" id="winScore">0 × 0</div>
+  <div class="save-msg" id="saveMsg"></div>
+  <div class="win-btns">
+    <button class="win-btn ghost" onclick="backToSetup()">← New Game</button>
+    <button class="win-btn primary" onclick="rematch()">↺ Rematch</button>
+  </div>
+</div>
+
+</div><!-- /#root -->
+
+<script>
+// ═══════════════════════════════════════════════
+//  LOCK ORIENTATION TO LANDSCAPE
+// ═══════════════════════════════════════════════
+(function tryLockLandscape() {
+  try {
+    if (screen.orientation && screen.orientation.lock) {
+      screen.orientation.lock('landscape').catch(() => {});
+    }
+  } catch(e) {}
+})();
+
+// ═══════════════════════════════════════════════
+//  COLOR PALETTE  (5 options per team)
+// ═══════════════════════════════════════════════
+const PALETTE = [
+  '#1976D2', // Blue
+  '#D32F2F', // Red
+  '#388E3C', // Green
+  '#7B1FA2', // Purple
+  '#F57C00', // Orange
+];
+
+const teamColor = { A: 0, B: 1 }; // default indices
+
+function buildSwatches(team) {
+  const container = document.getElementById('swatches' + team);
+  PALETTE.forEach((hex, i) => {
+    const btn = document.createElement('button');
+    btn.style.background = hex;
+    btn.setAttribute('aria-label', hex);
+    btn.onclick = function() { selectColor(team, i); };
+    container.appendChild(btn);
+  });
+}
+
+function refreshSwatches() {
+  ['A', 'B'].forEach(team => {
+    const other    = team === 'A' ? 'B' : 'A';
+    const blocked  = teamColor[other];
+    const swatches = document.getElementById('swatches' + team).querySelectorAll('button');
+    swatches.forEach((btn, i) => {
+      btn.className = [
+        'swatch',
+        i === teamColor[team] ? 'selected' : '',
+        i === blocked         ? 'blocked'  : ''
+      ].join(' ').trim();
+    });
+  });
+}
+
+function selectColor(team, idx) {
+  const other = team === 'A' ? 'B' : 'A';
+  if (idx === teamColor[other]) return; // blocked — do nothing
+
+  teamColor[team] = idx;
+
+  // If the other team somehow ended up on the same color, move them
+  if (teamColor[other] === idx) {
+    teamColor[other] = PALETTE.findIndex((_, i) => i !== idx);
+  }
+
+  refreshSwatches();
+
+  // Update label colors
+  document.getElementById('labelA').style.color = PALETTE[teamColor.A];
+  document.getElementById('labelB').style.color = PALETTE[teamColor.B];
+}
+
+buildSwatches('A');
+buildSwatches('B');
+refreshSwatches();
+// Apply default colors to labels
+document.getElementById('labelA').style.color = PALETTE[teamColor.A];
+document.getElementById('labelB').style.color = PALETTE[teamColor.B];
+
+// ═══════════════════════════════════════════════
+//  SETUP CONFIG
+// ═══════════════════════════════════════════════
+const cfg = { mode:'regular', type:'doubles', winPoints:11, firstServe:'A' };
+
+function pick(key, val, btn) {
+  cfg[key] = val;
+  btn.closest('.pill-row').querySelectorAll('.pill').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (key === 'mode') pickPts(val === 'rally' ? 21 : 11, null);
+}
+
+function pickPts(n, btn) {
+  cfg.winPoints = n;
+  document.querySelectorAll('.pts-btn').forEach(b => {
+    b.classList.toggle('active', parseInt(b.textContent) === n);
+  });
+}
+
+// ═══════════════════════════════════════════════
+//  GAME STATE
+// ═══════════════════════════════════════════════
+let S = {};
+let startTime;
+
+function makeState() {
+  return {
+    mode:        cfg.mode,
+    type:        cfg.type,
+    winPoints:   cfg.winPoints,
+    colorA:      PALETTE[teamColor.A],
+    colorB:      PALETTE[teamColor.B],
+    scoreA:      0,
+    scoreB:      0,
+    serving:     cfg.firstServe,
+    // Official rule: first serving team starts as "server 2"
+    serverNum:   cfg.mode === 'regular' ? 2 : 1,
+    firstServe:  cfg.mode === 'regular',
+    history:     [],
+    over:        false
+  };
+}
+
+function applyColors() {
+  const pA = document.getElementById('panelA');
+  const pB = document.getElementById('panelB');
+  pA.style.background = '#ffffff';
+  pB.style.background = '#ffffff';
+  document.getElementById('sA').style.color = S.colorA;
+  document.getElementById('sB').style.color = S.colorB;
+  document.getElementById('dnA').style.color = S.colorA;
+  document.getElementById('dnB').style.color = S.colorB;
+}
+
+function hexAlpha(hex, alpha) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+// ═══════════════════════════════════════════════
+//  SCREEN FLOW
+// ═══════════════════════════════════════════════
+function startGame() {
+  S = makeState();
+  startTime = Date.now();
+  document.getElementById('setup').style.display = 'none';
+  document.getElementById('game').style.display  = 'flex';
+  applyColors();
+  render();
+  checkRotate();
+}
+
+function backToSetup() {
+  document.getElementById('winOverlay').classList.remove('show');
+  document.getElementById('game').style.display  = 'none';
+  document.getElementById('setup').style.display = 'flex';
+  checkRotate();
+}
+
+function rematch() {
+  document.getElementById('winOverlay').classList.remove('show');
+  S = makeState();
+  startTime = Date.now();
+  applyColors();
+  render();
+}
+
+function resetGame() {
+  if (!confirm('Reset the score?')) return;
+  S = makeState();
+  startTime = Date.now();
+  applyColors();
+  render();
+}
+
+function endGame() {
+  document.getElementById('saveModalSub').textContent =
+    `Team A vs Team B · ${S.scoreA} × ${S.scoreB}`;
+  document.getElementById('saveModal').classList.add('show');
+}
+
+function confirmSave() {
+  document.getElementById('saveModal').classList.remove('show');
+  const winner = S.scoreA >= S.scoreB ? 'Team A' : 'Team B';
+  saveToSheets(winner, S.scoreA, S.scoreB);
+  backToSetup();
+}
+
+function confirmDiscard() {
+  document.getElementById('saveModal').classList.remove('show');
+  backToSetup();
+}
+
+// ═══════════════════════════════════════════════
+//  SCORING LOGIC
+// ═══════════════════════════════════════════════
+function addPoint(winner) {
+  if (S.over) return;
+
+  S.history.push({
+    scoreA:     S.scoreA,
+    scoreB:     S.scoreB,
+    serving:    S.serving,
+    serverNum:  S.serverNum,
+    firstServe: S.firstServe
+  });
+
+  if (S.mode === 'rally') rallyScore(winner);
+  else                    regularScore(winner);
+
+  checkWin();
+  render();
+}
+
+function rallyScore(winner) {
+  if (winner === 'A') S.scoreA++; else S.scoreB++;
+  if (S.serving !== winner) {
+    S.serving = winner;
+    if (S.type === 'doubles') S.serverNum = 1;
+  }
+}
+
+function regularScore(winner) {
+  if (S.serving === winner) {
+    // Serving team wins: point + keep serve
+    if (winner === 'A') S.scoreA++; else S.scoreB++;
+  } else {
+    // Side-out
+    if (S.firstServe) {
+      // Game start: only one serve for the opening team
+      S.serving    = winner;
+      S.serverNum  = 1;
+      S.firstServe = false;
+    } else if (S.type === 'doubles') {
+      if (S.serverNum === 1) {
+        S.serverNum = 2;          // pass to 2nd server on same team
+      } else {
+        S.serving   = winner;     // full side-out
+        S.serverNum = 1;
+      }
+    } else {
+      S.serving = winner;         // singles
+    }
+  }
+}
+
+function undoPoint() {
+  if (S.history.length === 0 || S.over) return;
+  Object.assign(S, S.history.pop());
+  render();
+}
+
+// ═══════════════════════════════════════════════
+//  WIN CHECK + SAVE
+// ═══════════════════════════════════════════════
+function checkWin() {
+  const W  = S.winPoints;
+  const aW = S.scoreA >= W && S.scoreA - S.scoreB >= 2;
+  const bW = S.scoreB >= W && S.scoreB - S.scoreA >= 2;
+  if (!aW && !bW) return;
+
+  S.over = true;
+  const winnerName  = aW ? 'Team A' : 'Team B';
+  const winScore    = aW ? S.scoreA : S.scoreB;
+  const loseScore   = aW ? S.scoreB : S.scoreA;
+  const winColor    = aW ? S.colorA : S.colorB;
+
+  document.getElementById('winName').textContent  = winnerName;
+  document.getElementById('winName').style.color  = winColor;
+  document.getElementById('winScore').textContent = `${winScore} × ${loseScore}`;
+  document.getElementById('winOverlay').classList.add('show');
+
+  saveToSheets(winnerName, S.scoreA, S.scoreB);
+}
+
+function saveToSheets(winner, sA, sB) {
+  const duration = Math.round((Date.now() - startTime) / 60000);
+  const data = {
+    mode:      S.mode,
+    type:      S.type,
+    teamAName: 'Team A',
+    teamBName: 'Team B',
+    scoreA:    sA,
+    scoreB:    sB,
+    winner:    winner,
+    duration:  duration
+  };
+  document.getElementById('saveMsg').textContent = 'Saving to sheet...';
+  google.script.run
+    .withSuccessHandler(function(res) {
+      document.getElementById('saveMsg').textContent =
+        res && res.success ? '✓ Saved to sheet' : '⚠ Could not save';
+    })
+    .withFailureHandler(function() {
+      document.getElementById('saveMsg').textContent = '⚠ Could not save';
+    })
+    .saveMatch(data);
+}
+
+// ═══════════════════════════════════════════════
+//  RENDER
+// ═══════════════════════════════════════════════
+function render() {
+  const isA = S.serving === 'A';
+
+  document.getElementById('sA').textContent = S.scoreA;
+  document.getElementById('sB').textContent = S.scoreB;
+
+  // Serve border
+  document.getElementById('panelA').classList.toggle('serving', isA);
+  document.getElementById('panelB').classList.toggle('serving', !isA);
+
+  // Active-side background pulse
+  document.getElementById('panelA').style.background = isA  ? hexAlpha(S.colorA, 0.22) : '#ffffff';
+  document.getElementById('panelB').style.background = !isA ? hexAlpha(S.colorB, 0.22) : '#ffffff';
+
+  // Serve badge text
+  const servBadge = document.getElementById('badge' + S.serving);
+  const recvBadge = document.getElementById('badge' + (S.serving === 'A' ? 'B' : 'A'));
+  if (S.mode === 'rally') {
+    servBadge.style.display = 'none';
+    recvBadge.style.display = 'none';
+  } else {
+    servBadge.style.display = '';
+    recvBadge.style.display = '';
+    servBadge.textContent = (S.type === 'doubles') ? `S${S.serverNum}` : 'SERVE';
+    recvBadge.textContent = '';
+  }
+
+  // Center call
+  const sServ = isA ? S.scoreA : S.scoreB;
+  const sRecv = isA ? S.scoreB : S.scoreA;
+  if (S.mode === 'regular') {
+    if (S.type === 'doubles') {
+      document.getElementById('callMain').textContent = `${sServ}-${sRecv}-${S.serverNum}`;
+      document.getElementById('callSub').textContent  = 'SERVE · RECV · #';
+    } else {
+      document.getElementById('callMain').textContent = `${sServ}-${sRecv}`;
+      document.getElementById('callSub').textContent  = 'SERVER · RECEIVER';
+    }
+  } else {
+    document.getElementById('callMain').textContent = `${S.scoreA} - ${S.scoreB}`;
+    document.getElementById('callSub').textContent  = 'TEAM A · TEAM B';
+  }
+
+  // Top info pill
+  const m = S.mode === 'regular' ? 'REGULAR' : 'RALLY';
+  document.getElementById('infoPill').textContent = `${m} · ${S.winPoints} PTS`;
+
+  // Mode tag (bottom bar) — sem match type
+  document.getElementById('modeTag').textContent = `${m} · ${S.winPoints} PTS`;
+}
+
+// ═══════════════════════════════════════════════
+//  FULLSCREEN
+// ═══════════════════════════════════════════════
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+              (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const isStandalone = window.navigator.standalone === true;
+
+function toggleFullscreen() {
+  if (isIOS) {
+    if (isStandalone) return; // já está em fullscreen via Home Screen
+    // Mostra toast com instrução
+    const toast = document.getElementById('iosToast');
+    toast.style.display = 'block';
+    toast.style.animation = 'none';
+    void toast.offsetWidth; // reflow
+    toast.style.animation = 'fadeOut 3.5s forwards';
+    setTimeout(() => { toast.style.display = 'none'; }, 3500);
+    return;
+  }
+  // Android / Desktop
+  const el = document.documentElement;
+  if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+    (el.requestFullscreen || el.webkitRequestFullscreen || function(){}).call(el);
+  } else {
+    (document.exitFullscreen || document.webkitExitFullscreen || function(){}).call(document);
+  }
+}
+
+document.addEventListener('fullscreenchange', updateFsBtn);
+document.addEventListener('webkitfullscreenchange', updateFsBtn);
+function updateFsBtn() {
+  const active = !!(document.fullscreenElement || document.webkitFullscreenElement);
+  document.getElementById('fsBtn').textContent = active ? '⊠' : '⛶';
+}
+
+// Esconde botão de fullscreen se já estiver em standalone (iOS Home Screen)
+if (isStandalone) {
+  document.getElementById('fsBtn').style.display = 'none';
+}
+
+</script>
+</body>
+</html>
