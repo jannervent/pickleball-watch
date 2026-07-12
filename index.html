@@ -259,8 +259,8 @@
 
   <div class="setup-label">First Serve</div>
   <div class="pill-row">
-    <button class="pill active" onclick="pick('firstServe','A',this)">A</button>
-    <button class="pill"        onclick="pick('firstServe','B',this)">B</button>
+    <button class="pill active" onclick="pick('firstServe','A',this)" style="background:#1976D2; color:#fff;">Blue</button>
+    <button class="pill"        onclick="pick('firstServe','B',this)" style="color:rgba(255,255,255,0.4);">Red</button>
   </div>
 
   <button class="start-btn" onclick="startGame()">Start</button>
@@ -345,8 +345,20 @@ const cfg = { mode: 'regular', type: 'doubles', winPoints: 11, firstServe: 'A' }
 
 function pick(key, val, btn) {
   cfg[key] = val;
-  btn.closest('.pill-row').querySelectorAll('.pill').forEach(b => b.classList.remove('active'));
+  const row = btn.closest('.pill-row');
+  row.querySelectorAll('.pill').forEach(b => {
+    b.classList.remove('active');
+    b.style.background = '';
+    b.style.color = 'rgba(255,255,255,0.4)';
+  });
   btn.classList.add('active');
+  if (key === 'firstServe') {
+    btn.style.background = val === 'A' ? '#1976D2' : '#D32F2F';
+    btn.style.color = '#fff';
+  } else {
+    btn.style.background = '#fff';
+    btn.style.color = '#0d1b2a';
+  }
 }
 function pickPts(n, btn) {
   cfg.winPoints = n;
