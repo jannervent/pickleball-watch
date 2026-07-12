@@ -114,7 +114,7 @@
       opacity: 1;
     }
     .score {
-      font-size: 96px; font-weight: 900;
+      font-size: 125px; font-weight: 900;
       line-height: 1; letter-spacing: -2px;
     }
     .serve-dot {
@@ -135,38 +135,42 @@
     }
     .center-bar {
       position: absolute;
-      left: 50%; top: 50%;
-      transform: translate(-50%, -50%);
+      left: 50%; top: 0;
+      transform: translateX(-50%);
       display: flex;
-      flex-direction: column;
       align-items: center;
-      gap: 6px;
       background: var(--bg);
-      padding: 6px 8px;
-      border-radius: 8px;
+      padding: 8px 14px;
+      border-radius: 0 0 12px 12px;
       border: 1px solid rgba(255,255,255,0.12);
+      border-top: none;
       z-index: 5;
+      white-space: nowrap;
     }
     .call-score {
-      font-size: 17px; font-weight: 800;
+      font-size: 42px; font-weight: 800;
       color: var(--gold); letter-spacing: 0.5px;
       white-space: nowrap;
     }
     .undo-btn {
+      position: absolute;
+      bottom: 10px; left: 50%;
+      transform: translateX(-50%);
       background: rgba(255,255,255,0.1);
       border: 1px solid rgba(255,255,255,0.15);
       color: rgba(255,255,255,1);
-      font-size: 15px; font-weight: 700;
-      padding: 3px 8px;
-      border-radius: 6px;
+      font-size: 30px; font-weight: 700;
+      padding: 12px 40px;
+      border-radius: 8px;
       cursor: pointer;
       white-space: nowrap;
+      z-index: 5;
     }
     .undo-btn:active { background: rgba(255,255,255,0.2); }
 
     .mode-tag {
       position: absolute;
-      bottom: 6px; left: 50%;
+      bottom: 48px; left: 50%;
       transform: translateX(-50%);
       text-align: center;
       font-size: 11px;
@@ -234,19 +238,19 @@
     <div class="serve-dot"></div>
   </div>
 
-  <div class="divider">
-    <div class="center-bar">
-      <span class="call-score" id="callScore">0 – 0</span>
-      <button class="undo-btn" onclick="undoPoint()">Undo</button>
-    </div>
-  </div>
+  <div class="divider"></div>
 
   <div class="panel" id="panelB" onclick="addPoint('B')">
-    <div class="score" id="sB">0</div>
     <div class="team-name" id="dnB">Team B</div>
+    <div class="score" id="sB">0</div>
     <div class="serve-dot"></div>
   </div>
 
+  <!-- overlays -->
+  <div class="center-bar">
+    <span class="call-score" id="callScore">0 – 0</span>
+  </div>
+  <button class="undo-btn" onclick="undoPoint()">Undo</button>
   <div class="mode-tag" id="modeTag">REGULAR · 11 PTS</div>
 </div>
 
