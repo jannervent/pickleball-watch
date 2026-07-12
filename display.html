@@ -71,23 +71,25 @@
       line-height: 1;
       letter-spacing: -4px;
     }
-    .t-serve-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      min-height: 24px;
+    .serve-boxes {
+      display: none;
+      flex-direction: row;
+      gap: 12px;
       margin-top: 30px;
     }
-    .t-dot {
-      display: none;
-      width: 42px; height: 42px;
-      background: var(--gold);
-      border-radius: 50%;
-    }
-    .team-panel.serving .t-dot { display: block; }
-    .t-num {
-      font-size: 54px; font-weight: 900;
+    .team-panel.serving .serve-boxes { display: flex; }
+    .serve-box {
+      width: 60px; height: 60px;
+      border-radius: 10px;
+      border: 3px solid var(--gold);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 36px; font-weight: 900;
       color: var(--gold);
+      opacity: 0.25;
+    }
+    .serve-box.active {
+      opacity: 1;
+      background: rgba(255,215,0,0.2);
     }
 
     /* Divider with call score */
@@ -171,9 +173,9 @@
     <div class="team-panel" id="panelA">
       <div class="t-name" id="nameA" style="color: var(--a)">Team A</div>
       <div class="t-score" id="scoreA" style="color: var(--a)">0</div>
-      <div class="t-serve-row">
-        <div class="t-dot"></div>
-        <div class="t-num" id="numA"></div>
+      <div class="serve-boxes">
+        <div class="serve-box" id="sbA1">1</div>
+        <div class="serve-box" id="sbA2">2</div>
       </div>
     </div>
 
@@ -184,9 +186,9 @@
     <div class="team-panel" id="panelB">
       <div class="t-name" id="nameB" style="color: var(--b)">Team B</div>
       <div class="t-score" id="scoreB" style="color: var(--b)">0</div>
-      <div class="t-serve-row">
-        <div class="t-dot"></div>
-        <div class="t-num" id="numB"></div>
+      <div class="serve-boxes">
+        <div class="serve-box" id="sbB1">1</div>
+        <div class="serve-box" id="sbB2">2</div>
       </div>
     </div>
 
@@ -251,8 +253,10 @@ db.ref('game').on('value', snap => {
   document.getElementById('panelB').style.background = hexAlpha(colors.B, !isA ? 0.18 : 0.06);
 
   const showNum = g.mode === 'regular' && g.type === 'doubles';
-  document.getElementById('numA').textContent = showNum && isA  ? `S${g.serverNum}` : '';
-  document.getElementById('numB').textContent = showNum && !isA ? `S${g.serverNum}` : '';
+  ['sbA1','sbA2','sbB1','sbB2'].forEach(id => document.getElementById(id).classList.remove('active'));
+  if (showNum) {
+    document.getElementById(`sb${isA ? 'A' : 'B'}${g.serverNum}`).classList.add('active');
+  }
 
   const sA = isA ? g.scoreA : g.scoreB;
   const sB = isA ? g.scoreB : g.scoreA;
