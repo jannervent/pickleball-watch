@@ -6,6 +6,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <title>PB Score</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/nosleep/0.12.0/NoSleep.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
@@ -266,6 +267,12 @@
 </div>
 
 <script>
+const noSleep = new NoSleep();
+document.addEventListener('click', function enableNoSleep() {
+  noSleep.enable();
+  document.removeEventListener('click', enableNoSleep, false);
+}, false);
+
 const cfg = { mode: 'regular', type: 'doubles', winPoints: 11, firstServe: 'A' };
 
 function pick(key, val, btn) {
