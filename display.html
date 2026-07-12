@@ -79,13 +79,13 @@
     }
     .t-dot {
       display: none;
-      width: 14px; height: 14px;
+      width: 42px; height: 42px;
       background: var(--gold);
       border-radius: 50%;
     }
     .team-panel.serving .t-dot { display: block; }
     .t-num {
-      font-size: 18px; font-weight: 900;
+      font-size: 54px; font-weight: 900;
       color: var(--gold);
     }
 
@@ -98,16 +98,17 @@
       flex-shrink: 0;
     }
     .call-pill {
-      position: absolute;
-      left: 50%; top: 50%;
-      transform: translate(-50%, -50%);
-      background: var(--bg);
+      position: fixed;
+      top: 0; left: 50%;
+      transform: translateX(-50%);
+      background: #000;
       border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 20px;
-      padding: 6px 18px;
-      font-size: 22px; font-weight: 800;
+      border-radius: 0 0 16px 16px;
+      padding: 10px 28px;
+      font-size: 66px; font-weight: 800;
       color: var(--gold);
       white-space: nowrap;
+      z-index: 20;
     }
 
     /* Mode tag */
