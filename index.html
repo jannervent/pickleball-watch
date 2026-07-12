@@ -119,12 +119,19 @@
     }
     .serve-dot {
       display: none;
-      width: 8px; height: 8px;
+      width: 16px; height: 16px;
       background: var(--gold);
       border-radius: 50%;
       margin-top: 2px;
     }
     .panel.serving .serve-dot { display: block; }
+    .serve-num {
+      display: none;
+      font-size: 16px; font-weight: 900;
+      color: var(--gold);
+      margin-top: 2px;
+    }
+    .panel.serving .serve-num { display: block; }
 
     .divider {
       width: 1px;
@@ -236,6 +243,7 @@
     <div class="team-name" id="dnA">Team A</div>
     <div class="score" id="sA">0</div>
     <div class="serve-dot"></div>
+    <div class="serve-num" id="snA"></div>
   </div>
 
   <div class="divider"></div>
@@ -244,6 +252,7 @@
     <div class="team-name" id="dnB">Team B</div>
     <div class="score" id="sB">0</div>
     <div class="serve-dot"></div>
+    <div class="serve-num" id="snB"></div>
   </div>
 
   <!-- overlays -->
@@ -385,6 +394,10 @@ function render() {
     S.mode === 'regular' && S.type === 'doubles'
       ? `${sA} • ${sB} • ${S.serverNum}`
       : `${S.scoreA} • ${S.scoreB}`;
+
+  const showNum = S.mode === 'regular' && S.type === 'doubles';
+  document.getElementById('snA').textContent = showNum && isA  ? `S${S.serverNum}` : '';
+  document.getElementById('snB').textContent = showNum && !isA ? `S${S.serverNum}` : '';
 }
 
 function hexAlpha(hex, a) {
