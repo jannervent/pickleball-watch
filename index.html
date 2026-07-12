@@ -389,8 +389,6 @@ function startGame() {
   document.getElementById('game').style.display  = 'flex';
   document.getElementById('sA').style.color = colors.A;
   document.getElementById('sB').style.color = colors.B;
-  document.getElementById('modeTag').textContent =
-    `${S.mode === 'regular' ? 'REGULAR' : 'RALLY'} · ${S.winPoints} PTS`;
   render();
 }
 
@@ -473,8 +471,8 @@ function render() {
       : `${S.scoreA} • ${S.scoreB}`;
 
   const showNum = S.mode === 'regular' && S.type === 'doubles';
-  document.getElementById('snA').textContent = showNum && isA  ? `S${S.serverNum}` : '';
-  document.getElementById('snB').textContent = showNum && !isA ? `S${S.serverNum}` : '';
+  document.getElementById('snA').textContent = showNum && isA  ? `${S.serverNum}` : '';
+  document.getElementById('snB').textContent = showNum && !isA ? `${S.serverNum}` : '';
   syncToFirebase();
 }
 
