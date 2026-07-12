@@ -154,16 +154,28 @@
       margin-top: 2px;
     }
     .panel.serving .serve-dot { display: block; }
-    .serve-num {
+    .serve-boxes {
       display: none;
-      font-size: 32px; font-weight: 900;
-      color: var(--gold);
       position: absolute;
-      bottom: 12px;
-      left: 50%;
+      bottom: 12px; left: 50%;
       transform: translateX(-50%);
+      flex-direction: row;
+      gap: 8px;
     }
-    .panel.serving .serve-num { display: block; }
+    .panel.serving .serve-boxes { display: flex; }
+    .serve-box {
+      width: 40px; height: 40px;
+      border-radius: 8px;
+      border: 2px solid var(--gold);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px; font-weight: 900;
+      color: var(--gold);
+      opacity: 0.25;
+    }
+    .serve-box.active {
+      opacity: 1;
+      background: rgba(255,215,0,0.2);
+    }
 
     .divider {
       width: 1px;
@@ -281,14 +293,20 @@
 <div id="game">
   <div class="panel" id="panelA" onclick="addPoint('A')">
     <div class="score" id="sA">0</div>
-    <div class="serve-num" id="snA"></div>
+    <div class="serve-boxes" id="sbA">
+      <div class="serve-box" id="sbA1">1</div>
+      <div class="serve-box" id="sbA2">2</div>
+    </div>
   </div>
 
   <div class="divider"></div>
 
   <div class="panel" id="panelB" onclick="addPoint('B')">
     <div class="score" id="sB">0</div>
-    <div class="serve-num" id="snB"></div>
+    <div class="serve-boxes" id="sbB">
+      <div class="serve-box" id="sbB1">1</div>
+      <div class="serve-box" id="sbB2">2</div>
+    </div>
   </div>
 
   <!-- overlays -->
@@ -471,8 +489,10 @@ function render() {
       : `${S.scoreA} • ${S.scoreB}`;
 
   const showNum = S.mode === 'regular' && S.type === 'doubles';
-  document.getElementById('snA').textContent = showNum && isA  ? `${S.serverNum}` : '';
-  document.getElementById('snB').textContent = showNum && !isA ? `${S.serverNum}` : '';
+  ['sbA1','sbA2','sbB1','sbB2'].forEach(id => document.getElementById(id).classList.remove('active'));
+  if (showNum) {
+    document.getElementById(`sb${isA ? 'A' : 'B'}${S.serverNum}`).classList.add('active');
+  }
   syncToFirebase();
 }
 
