@@ -6,6 +6,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <title>PB Score</title>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
@@ -275,6 +277,31 @@
 </div>
 
 <script>
+// Firebase
+firebase.initializeApp({
+  apiKey: "AIzaSyAUJ7ThK34M4f_JEv7ymdLvFMtGmE3_sDs",
+  authDomain: "pickleball-score-97b6a.firebaseapp.com",
+  databaseURL: "https://pickleball-score-97b6a-default-rtdb.firebaseio.com",
+  projectId: "pickleball-score-97b6a",
+  storageBucket: "pickleball-score-97b6a.firebasestorage.app",
+  messagingSenderId: "848083702434",
+  appId: "1:848083702434:web:6093022a15f88dd7e9bdfb"
+});
+const db = firebase.database();
+const gameRef = db.ref('game');
+
+function syncToFirebase() {
+  if (!S || !S.hasOwnProperty('scoreA')) return;
+  try {
+    gameRef.set({
+      scoreA: S.scoreA, scoreB: S.scoreB,
+      serving: S.serving, serverNum: S.serverNum || 1,
+      mode: S.mode, type: S.type, winPoints: S.winPoints,
+      over: S.over || false, active: true
+    });
+  } catch(e) {}
+}
+
 try {
   if ('wakeLock' in navigator) {
     document.addEventListener('click', async function enableWakeLock() {
@@ -330,6 +357,7 @@ function backToSetup() {
   document.getElementById('winOverlay').classList.remove('show');
   document.getElementById('game').style.display  = 'none';
   document.getElementById('setup').style.display = 'flex';
+  try { gameRef.set({ active: false }); } catch(e) {}
 }
 
 function rematch() {
@@ -402,6 +430,7 @@ function render() {
   const showNum = S.mode === 'regular' && S.type === 'doubles';
   document.getElementById('snA').textContent = showNum && isA  ? `S${S.serverNum}` : '';
   document.getElementById('snB').textContent = showNum && !isA ? `S${S.serverNum}` : '';
+  syncToFirebase();
 }
 
 function hexAlpha(hex, a) {
