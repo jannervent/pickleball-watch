@@ -88,7 +88,8 @@
 
     #qrModal {
       display: none;
-      position: fixed; inset: 0;
+      position: fixed;
+      top: 0; right: 0; bottom: 0; left: 0;
       background: rgba(0,0,0,0.92);
       flex-direction: column;
       align-items: center;
@@ -250,7 +251,7 @@
   </div>
 
   <div class="setup-label">Points to Win</div>
-  <div class="pill-row">
+  <div class="pill-row" id="ptsPills">
     <button class="pill active" onclick="pickPts(11,this)">11</button>
     <button class="pill"        onclick="pickPts(15,this)">15</button>
     <button class="pill"        onclick="pickPts(21,this)">21</button>
@@ -354,7 +355,7 @@ function pick(key, val, btn) {
 }
 function pickPts(n, btn) {
   cfg.winPoints = n;
-  document.querySelectorAll('#setup .pill-row:nth-child(8) .pill').forEach(b =>
+  document.querySelectorAll('#ptsPills .pill').forEach(b =>
     b.classList.toggle('active', parseInt(b.textContent) === n)
   );
 }
