@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>PB Display</title>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --gold: #ffd700; --bg: #0d1b2a; --a: #1976D2; --b: #D32F2F; }
+
+    html, body {
+      width: 100%; height: 100%;
+      background: var(--bg);
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    #screen {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    /* Waiting state */
+    #waiting {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      gap: 16px;
+    }
+    .wait-icon { font-size: 56px; }
+    .wait-text { font-size: 20px; font-weight: 700; color: rgba(255,255,255,0.5); text-align: center; }
+
+    /* Score panels */
+    #scoreboard {
+      display: none;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .team-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: background 0.2s;
+      position: relative;
+    }
+    .team-panel.serving {
+      box-shadow: inset 0 0 0 4px var(--gold);
+    }
+
+    .t-name {
+      font-size: 28px; font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      opacity: 0.8;
+    }
+    .t-score {
+      font-size: clamp(120px, 38vw, 220px);
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -4px;
+    }
+    .t-serve-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 24px;
+    }
+    .t-dot {
+      display: none;
+      width: 14px; height: 14px;
+      background: var(--gold);
+      border-radius: 50%;
+    }
+    .team-panel.serving .t-dot { display: block; }
+    .t-num {
+      font-size: 18px; font-weight: 900;
+      color: var(--gold);
+    }
+
+    /* Divider with call score */
+    .h-divider {
+      height: 1px;
+      background: rgba(255,255,255,0.1);
+      position: relative;
+      flex-shrink: 0;
+    }
+    .call-pill {
+      position: absolute;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--bg);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 20px;
+      padding: 6px 18px;
+      font-size: 22px; font-weight: 800;
+      color: var(--gold);
+      white-space: nowrap;
+    }
+
+    /* Mode tag */
+    .mode-tag {
+      position: absolute;
+      bottom: 10px; left: 50%;
+      transform: translateX(-50%);
+      font-size: 12px;
+      color: rgba(255,255,255,0.25);
+      white-space: nowrap;
+      letter-spacing: 0.5px;
+    }
+
+    /* Win overlay */
+    #winOverlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.92);
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      z-index: 10;
+    }
+    #winOverlay.show { display: flex; }
+    .win-emoji { font-size: 72px; }
+    .win-label { font-size: 16px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 2px; }
+    .win-name  { font-size: 52px; font-weight: 900; }
+    .win-score { font-size: 28px; color: rgba(255,255,255,0.6); }
+  </style>
+</head>
+<body>
+<div id="screen">
+
+  <!-- Waiting -->
+  <div id="waiting">
+    <div class="wait-icon">🏓</div>
+    <div class="wait-text">Waiting for game<br>on Watch…</div>
+  </div>
+
+  <!-- Scoreboard -->
+  <div id="scoreboard">
+    <div class="team-panel" id="panelA">
+      <div class="t-name" id="nameA">Team A</div>
+      <div class="t-score" id="scoreA" style="color: var(--a)">0</div>
+      <div class="t-serve-row">
+        <div class="t-dot"></div>
+        <div class="t-num" id="numA"></div>
+      </div>
+    </div>
+
+    <div class="h-divider">
+      <div class="call-pill" id="callScore">0 • 0</div>
+    </div>
+
+    <div class="team-panel" id="panelB">
+      <div class="t-name" id="nameB">Team B</div>
+      <div class="t-score" id="scoreB" style="color: var(--b)">0</div>
+      <div class="t-serve-row">
+        <div class="t-dot"></div>
+        <div class="t-num" id="numB"></div>
+      </div>
+    </div>
+
+    <div class="mode-tag" id="modeTag"></div>
+  </div>
+</div>
+
+<!-- Win overlay -->
+<div id="winOverlay">
+  <div class="win-emoji">🏆</div>
+  <div class="win-label">Winner</div>
+  <div class="win-name" id="winName"></div>
+  <div class="win-score" id="winScore"></div>
+</div>
+
+<script>
+firebase.initializeApp({
+  apiKey: "AIzaSyAUJ7ThK34M4f_JEv7ymdLvFMtGmE3_sDs",
+  authDomain: "pickleball-score-97b6a.firebaseapp.com",
+  databaseURL: "https://pickleball-score-97b6a-default-rtdb.firebaseio.com",
+  projectId: "pickleball-score-97b6a",
+  storageBucket: "pickleball-score-97b6a.firebasestorage.app",
+  messagingSenderId: "848083702434",
+  appId: "1:848083702434:web:6093022a15f88dd7e9bdfb"
+});
+
+const db = firebase.database();
+const colors = { A: '#1976D2', B: '#D32F2F' };
+
+db.ref('game').on('value', snap => {
+  const g = snap.val();
+
+  if (!g || !g.active) {
+    document.getElementById('waiting').style.display   = 'flex';
+    document.getElementById('scoreboard').style.display = 'none';
+    document.getElementById('winOverlay').classList.remove('show');
+    return;
+  }
+
+  document.getElementById('waiting').style.display    = 'none';
+  document.getElementById('scoreboard').style.display = 'flex';
+
+  const isA = g.serving === 'A';
+
+  document.getElementById('scoreA').textContent = g.scoreA;
+  document.getElementById('scoreB').textContent = g.scoreB;
+
+  document.getElementById('panelA').classList.toggle('serving', isA);
+  document.getElementById('panelB').classList.toggle('serving', !isA);
+  document.getElementById('panelA').style.background = hexAlpha(colors.A, isA  ? 0.18 : 0.06);
+  document.getElementById('panelB').style.background = hexAlpha(colors.B, !isA ? 0.18 : 0.06);
+
+  const showNum = g.mode === 'regular' && g.type === 'doubles';
+  document.getElementById('numA').textContent = showNum && isA  ? `S${g.serverNum}` : '';
+  document.getElementById('numB').textContent = showNum && !isA ? `S${g.serverNum}` : '';
+
+  const sA = isA ? g.scoreA : g.scoreB;
+  const sB = isA ? g.scoreB : g.scoreA;
+  document.getElementById('callScore').textContent =
+    showNum ? `${sA} • ${sB} • ${g.serverNum}` : `${g.scoreA} • ${g.scoreB}`;
+
+  document.getElementById('modeTag').textContent =
+    `${g.mode === 'regular' ? 'REGULAR' : 'RALLY'} · ${g.winPoints} PTS`;
+
+  // Win
+  if (g.over) {
+    const aWon = g.scoreA >= g.scoreB;
+    const name  = aWon ? 'Team A' : 'Team B';
+    const color = aWon ? colors.A : colors.B;
+    document.getElementById('winName').textContent  = name;
+    document.getElementById('winName').style.color  = color;
+    document.getElementById('winScore').textContent =
+      `${aWon ? g.scoreA : g.scoreB} × ${aWon ? g.scoreB : g.scoreA}`;
+    document.getElementById('winOverlay').classList.add('show');
+  } else {
+    document.getElementById('winOverlay').classList.remove('show');
+  }
+});
+
+function hexAlpha(hex, a) {
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+</script>
+</body>
+</html>
