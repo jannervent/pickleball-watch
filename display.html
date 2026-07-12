@@ -253,8 +253,8 @@ db.ref('game').on('value', snap => {
 
   document.getElementById('panelA').classList.toggle('serving', isA);
   document.getElementById('panelB').classList.toggle('serving', !isA);
-  document.getElementById('panelA').style.background = hexAlpha(colors.A, isA  ? 0.18 : 0.06);
-  document.getElementById('panelB').style.background = hexAlpha(colors.B, !isA ? 0.18 : 0.06);
+  document.getElementById('panelA').style.background = hexAlpha(colors.A, isA  ? 0.40 : 0.10);
+  document.getElementById('panelB').style.background = hexAlpha(colors.B, !isA ? 0.40 : 0.10);
 
   const showNum = g.mode === 'regular' && g.type === 'doubles';
   ['sbA1','sbA2','sbB1','sbB2'].forEach(id => document.getElementById(id).classList.remove('active'));
