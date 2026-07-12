@@ -75,6 +75,32 @@
     }
     .pill.active { background: #fff; color: var(--bg); }
 
+    .qr-btn {
+      width: 100%; padding: 8px;
+      background: rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.7);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 10px;
+      font-size: 13px; font-weight: 700;
+      cursor: pointer;
+      margin-top: 2px;
+    }
+
+    #qrModal {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.92);
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      z-index: 50;
+    }
+    #qrModal.show { display: flex; }
+    .qr-title { font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.6); text-align: center; }
+    .qr-img { width: 160px; height: 160px; border-radius: 12px; background: #fff; padding: 8px; }
+    .qr-close { font-size: 13px; font-weight: 700; color: var(--gold); cursor: pointer; padding: 6px 20px; }
+
     .start-btn {
       width: 100%; padding: 11px;
       background: #388E3C; color: #fff;
@@ -237,6 +263,14 @@
   </div>
 
   <button class="start-btn" onclick="startGame()">Start</button>
+  <button class="qr-btn" onclick="document.getElementById('qrModal').classList.add('show')">📱 Display QR</button>
+</div>
+
+<!-- QR Modal -->
+<div id="qrModal">
+  <div class="qr-title">Scan to open display<br>on your phone</div>
+  <img class="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=https://jannervent.github.io/pickleball-watch/display.html" alt="QR">
+  <div class="qr-close" onclick="document.getElementById('qrModal').classList.remove('show')">Close</div>
 </div>
 
 <!-- GAME -->
