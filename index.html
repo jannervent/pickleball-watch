@@ -6,7 +6,6 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <title>PB Score</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/nosleep/0.12.0/NoSleep.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
@@ -149,7 +148,7 @@
       white-space: nowrap;
     }
     .call-score {
-      font-size: 42px; font-weight: 800;
+      font-size: 21px; font-weight: 800;
       color: var(--gold); letter-spacing: 0.5px;
       white-space: nowrap;
     }
@@ -160,8 +159,8 @@
       background: rgba(255,255,255,0.1);
       border: 1px solid rgba(255,255,255,0.15);
       color: rgba(255,255,255,1);
-      font-size: 30px; font-weight: 700;
-      padding: 12px 40px;
+      font-size: 15px; font-weight: 700;
+      padding: 6px 20px;
       border-radius: 8px;
       cursor: pointer;
       white-space: nowrap;
@@ -267,11 +266,14 @@
 </div>
 
 <script>
-const noSleep = new NoSleep();
-document.addEventListener('click', function enableNoSleep() {
-  noSleep.enable();
-  document.removeEventListener('click', enableNoSleep, false);
-}, false);
+try {
+  if ('wakeLock' in navigator) {
+    document.addEventListener('click', async function enableWakeLock() {
+      try { await navigator.wakeLock.request('screen'); } catch(e) {}
+      document.removeEventListener('click', enableWakeLock);
+    }, { once: true });
+  }
+} catch(e) {}
 
 const cfg = { mode: 'regular', type: 'doubles', winPoints: 11, firstServe: 'A' };
 
@@ -381,8 +383,8 @@ function render() {
   const sB = isA ? S.scoreB : S.scoreA;
   document.getElementById('callScore').textContent =
     S.mode === 'regular' && S.type === 'doubles'
-      ? `${sA}–${sB}–${S.serverNum}`
-      : `${S.scoreA} – ${S.scoreB}`;
+      ? `${sA} • ${sB} • ${S.serverNum}`
+      : `${S.scoreA} • ${S.scoreB}`;
 }
 
 function hexAlpha(hex, a) {
