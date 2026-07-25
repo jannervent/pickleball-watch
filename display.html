@@ -25,6 +25,7 @@
       display: flex;
       flex-direction: column;
       height: 100%;
+      width: 100%;
     }
 
     /* Waiting state */
@@ -44,10 +45,15 @@
       display: none;
       flex-direction: row;
       height: 100%;
+      width: 100%;
     }
 
     .team-panel {
-      flex: 1;
+      flex: 1 1 50%;
+      width: 50%;
+      min-width: 0;
+      max-width: 50%;
+      overflow: hidden;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -61,22 +67,29 @@
     }
 
     .t-score {
-      font-size: clamp(234px, 74vw, 429px);
+      font-size: clamp(120px, 40vw, 320px);
       font-weight: 900;
       line-height: 1;
       letter-spacing: -4px;
       margin-top: 30px;
+      white-space: nowrap;
+      min-width: 0;
+      flex-shrink: 1;
     }
     .score-row {
       display: flex;
       flex-direction: row;
       align-items: center;
       gap: 16px;
+      min-width: 0;
+      max-width: 100%;
+      overflow: hidden;
     }
     .serve-boxes {
       display: flex;
       flex-direction: column;
       gap: 14px;
+      flex-shrink: 0;
     }
     .team-panel.serving .serve-boxes { opacity: 1; }
     .team-panel:not(.serving) .serve-boxes { opacity: 0.15; }
@@ -233,6 +246,41 @@ firebase.initializeApp({
 const db = firebase.database();
 const colors = { A: '#1976D2', B: '#D32F2F' };
 
+// ── Auto-fit score text so it never overflows its half of the screen ──
+// Measures the space actually available next to the serve-boxes column
+// and shrinks the font-size until the number fits, no matter how many
+// digits it has (works for 1, 2 or 3-digit scores).
+function fitScoreText(el) {
+  const row   = el.parentElement;          // .score-row
+  const panel = row.parentElement;         // .team-panel
+  const serveBoxes = row.querySelector('.serve-boxes');
+  const gap = 16; // matches .score-row gap
+  const padding = 12; // small safety buffer so glyphs never touch the edge
+
+  const available = panel.clientWidth - (serveBoxes ? serveBoxes.offsetWidth : 0) - gap - padding;
+  if (available <= 0) return;
+
+  // Start from the panel height/width so short scores still look big,
+  // then shrink until the rendered text fits inside `available`.
+  let fontSize = Math.min(available * 1.5, panel.clientHeight * 0.85, 320);
+  el.style.fontSize = fontSize + 'px';
+
+  let guard = 0;
+  while (el.scrollWidth > available && fontSize > 24 && guard < 80) {
+    fontSize -= 4;
+    el.style.fontSize = fontSize + 'px';
+    guard++;
+  }
+}
+
+function fitAllScores() {
+  fitScoreText(document.getElementById('scoreA'));
+  fitScoreText(document.getElementById('scoreB'));
+}
+
+window.addEventListener('resize', fitAllScores);
+window.addEventListener('orientationchange', () => setTimeout(fitAllScores, 150));
+
 db.ref('game').on('value', snap => {
   const g = snap.val();
 
@@ -283,6 +331,9 @@ db.ref('game').on('value', snap => {
   } else {
     document.getElementById('winOverlay').classList.remove('show');
   }
+
+  // Re-fit after the DOM has the new score painted
+  requestAnimationFrame(fitAllScores);
 });
 
 function hexAlpha(hex, a) {
