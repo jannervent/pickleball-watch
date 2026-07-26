@@ -167,17 +167,37 @@
       display: none;
       position: fixed; inset: 0;
       background: rgba(0,0,0,0.92);
-      flex-direction: column;
+      flex-direction: row;
       align-items: center;
       justify-content: center;
-      gap: 12px;
+      gap: 40px;
       z-index: 10;
     }
     #winOverlay.show { display: flex; }
-    .win-emoji { font-size: 72px; }
-    .win-label { font-size: 16px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 2px; }
-    .win-name  { font-size: 52px; font-weight: 900; }
-    .win-score { font-size: 28px; color: rgba(255,255,255,0.6); }
+    .win-trophy {
+      font-size: 80vh;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .win-info {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+      min-width: 0;
+    }
+    .win-name  {
+      font-size: clamp(48px, 11vw, 150px);
+      font-weight: 900;
+      letter-spacing: 1px;
+      white-space: nowrap;
+    }
+    .win-score {
+      font-size: clamp(32px, 7vw, 96px);
+      font-weight: 800;
+      color: rgba(255,255,255,0.75);
+      white-space: nowrap;
+    }
   </style>
 </head>
 <body>
@@ -231,10 +251,11 @@
 
 <!-- Win overlay -->
 <div id="winOverlay">
-  <div class="win-emoji">🏆</div>
-  <div class="win-label">Winner</div>
-  <div class="win-name" id="winName"></div>
-  <div class="win-score" id="winScore"></div>
+  <div class="win-trophy">🏆</div>
+  <div class="win-info">
+    <div class="win-name" id="winName"></div>
+    <div class="win-score" id="winScore"></div>
+  </div>
 </div>
 
 <script>
@@ -343,7 +364,7 @@ db.ref('game').on('value', snap => {
   // Win
   if (g.over) {
     const aWon = g.scoreA >= g.scoreB;
-    const name  = aWon ? 'Team A' : 'Team B';
+    const name  = aWon ? 'TEAM BLUE' : 'TEAM RED';
     const color = aWon ? colors.A : colors.B;
     document.getElementById('winName').textContent  = name;
     document.getElementById('winName').style.color  = color;
