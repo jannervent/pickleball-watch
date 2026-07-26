@@ -99,12 +99,12 @@
       overflow: hidden;
     }
     .serve-boxes {
-      display: flex;
+      display: none; /* serve-number cards removed from the display in both modes */
       flex-direction: column;
       gap: 14px;
       flex-shrink: 0;
     }
-    /* Nudge the serve-number cards 40px toward the center divider */
+    /* Nudge the serve-number cards 40px toward the center divider (unused while hidden above) */
     #panelA .serve-boxes { transform: translateX(40px); }
     #panelB .serve-boxes { transform: translateX(-40px); }
     .team-panel.serving .serve-boxes { opacity: 1; }
