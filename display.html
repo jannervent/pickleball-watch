@@ -279,10 +279,9 @@ function fitScoreText(el) {
   const available = panel.clientWidth - reserved - padding;
   if (available <= 0) return;
 
-  // Rally mode scores run 30% bigger than Regular — but never wider than
-  // `available`, so the fixed 50/50 split from before is never broken.
-  const isRally = document.getElementById('scoreboard').classList.contains('rally');
-  const boost = isRally ? 1.3 : 1;
+  // Scores run 30% bigger in both modes — but never wider than `available`,
+  // so the fixed 50/50 split from before is never broken.
+  const boost = 1.3;
 
   // Start from the panel height/width so short scores still look big,
   // then shrink until the rendered text fits inside `available`.
